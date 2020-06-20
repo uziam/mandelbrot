@@ -22,9 +22,6 @@ void render(SDL_Renderer *rend, struct mandelbrot *mb)
 	if (!mb || !mb->max_iter)
 		return;
 
-	SDL_SetRenderDrawColor(rend, 0, 0, 0, 255);
-	SDL_RenderClear(rend);
-
 	for (int i = 0; i < mb->rows; ++i) {
 		for (int j = 0; j < mb->columns; ++j) {
 			struct color c = to_color(mb->buf[i][j], mb->max_iter);
