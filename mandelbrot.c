@@ -1,18 +1,32 @@
-#include <complex.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "mandelbrot.h"
 
+/*
+ * let z = a + bi and c = x + yi
+ *
+ * f(z) = z^2 + c
+ *      = (a + bi) * (a + bi) + (x + yi)
+ *      = a^2 - b^2 + 2abi + x + yi
+ *
+ * Re(f(z)) = a^2 - b^2 + x
+ * Im(f(z)) = (2ab + y)i
+ */
 static unsigned mandelbrot(double x, double y, unsigned max_iter)
 {
-	double complex c = x + y * I;
-	double complex z = 0 + 0 * I;
+	double a = 0;
+	double b = 0;
 
 	for (unsigned i = 0; i < max_iter; i++) {
-		z = z * z + c;
-		if (creal(z) * creal(z) + cimag(z) * cimag(z) >= 4)
+		double re = a * a - b * b + x;
+		double im = 2 * a * b + y;
+
+		if (re * re + im * im >= 4)
 			return i;
+
+		a = re;
+		b = im;
 	}
 
 	return max_iter;
