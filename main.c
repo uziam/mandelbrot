@@ -6,7 +6,7 @@
 #include "setting.h"
 
 double zoom  = 1;
-double xcenter = -1;
+double xcenter = -0.75;
 double ycenter = 0;
 
 static SDL_Window *create_window(void)
@@ -149,10 +149,10 @@ int main(int argc, char *argv[])
 		goto out_cleanup_err;
 
 	while (!sdl_event_iteration()) {
-		double xmin = xcenter - 1.5 * zoom;
-		double xmax = xcenter + 1.5 * zoom;
-		double ymin = ycenter - 0.9 * zoom; 
-		double ymax = ycenter + 0.9 * zoom;
+		double xmin = xcenter - 1.75 * zoom;
+		double xmax = xcenter + 1.75 * zoom;
+		double ymin = ycenter - 1 * zoom;
+		double ymax = ycenter + 1 * zoom;
 
 		mandelbrot_compute(mb, max_iter, xmin, xmax, ymin, ymax);
 		render(rend, mb);
