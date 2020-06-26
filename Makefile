@@ -20,6 +20,8 @@ CC_FLAGS += -std=gnu99
 CC_FLAGS += -Wall
 CC_FLAGS += -O2
 CC_FLAGS += -fopenmp
+CC_FLAGS += -mavx2
+CC_FLAGS += -march=native
 CC_FLAGS += $(shell sdl2-config --cflags)
 
 LD_FLAGS ?=
