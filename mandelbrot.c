@@ -51,7 +51,7 @@ static void mandelbrot(double x0, double x1, double y0, double y1,
 	__m128i count = _mm_setzero_si128();
 
 	for (unsigned i = 0; i <= max_iter; i++) {
-		/* TODO - wasted calculations here for a an b for at max_iter */
+		/* TODO - wasted calculations here for a an b at max_iter */
 		__m256d mod2 = mandelbrot_iter(&a, &b, x, y);
 
 		/* With every iteration we get mod^2 for the last iteration,
