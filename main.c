@@ -18,10 +18,16 @@ static SDL_Window *create_window(void)
 		return NULL;
 	}
 
+	Uint32 flags = 0;
+
+	if (WINDOW_FULLSCREEN)
+		flags |= SDL_WINDOW_FULLSCREEN;
+
 	SDL_Window *window = SDL_CreateWindow(WINDOW_TITLE,
 	                                      SDL_WINDOWPOS_CENTERED,
 	                                      SDL_WINDOWPOS_CENTERED,
-	                                      WINDOW_WIDTH, WINDOW_HEIGHT, 0);
+	                                      WINDOW_WIDTH, WINDOW_HEIGHT,
+	                                      flags);
 	if (!window) {
 		fprintf(stderr, "Error creating window: %s\n", SDL_GetError());
 		SDL_Quit();
