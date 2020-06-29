@@ -5,6 +5,9 @@
 
 #include "mandelbrot.h"
 
-void render_show(SDL_Renderer *rend, struct mandelbrot *mb);
+typedef struct renderer renderer;
+
+renderer *render_init(SDL_Renderer *rend, unsigned width, unsigned height);
+void render_show(renderer *rend, struct mandelbrot *mb);
 
 #endif /* RENDER_H */

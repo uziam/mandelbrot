@@ -56,22 +56,22 @@ static SDL_Renderer *create_renderer(SDL_Window *window)
 	if (REND_GPU)
 		flags |= SDL_RENDERER_ACCELERATED;
 
-	SDL_Renderer *rend = SDL_CreateRenderer(window, -1, flags);
-	if (!rend) {
+	SDL_Renderer *sdlrend = SDL_CreateRenderer(window, -1, flags);
+	if (!sdlrend) {
 		fprintf(stderr, "Error creating renderer: %s\n",
 		        SDL_GetError());
 		return NULL;
 	}
 
-	return rend;
+	return sdlrend;
 }
 
-static void cleanup_renderer(SDL_Renderer *rend)
+static void cleanup_renderer(SDL_Renderer *sdlrend)
 {
-	if (!rend)
+	if (!sdlrend)
 		return;
 
-	SDL_DestroyRenderer(rend);
+	SDL_DestroyRenderer(sdlrend);
 }
 
 static int sdl_event_iteration(void)
@@ -146,7 +146,11 @@ int main(int argc, char *argv[])
 	if (!window)
 		return -1;
 
-	SDL_Renderer *rend = create_renderer(window);
+	SDL_Renderer *sdlrend = create_renderer(window);
+	if (!sdlrend)
+		goto out_cleanup_err;
+
+	renderer *rend = render_init(sdlrend, WINDOW_WIDTH, WINDOW_HEIGHT);
 	if (!rend)
 		goto out_cleanup_err;
 
@@ -164,13 +168,13 @@ int main(int argc, char *argv[])
 		render_show(rend, mb);
 	}
 
-	cleanup_renderer(rend);
+	cleanup_renderer(sdlrend);
 	cleanup_window(window);
 
 	return 0;
 
 out_cleanup_err:
-	cleanup_renderer(rend);
+	cleanup_renderer(sdlrend);
 	cleanup_window(window);
 
 	return -1;
