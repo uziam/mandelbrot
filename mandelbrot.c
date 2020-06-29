@@ -35,8 +35,9 @@ static __m256d mandelbrot_iter(__m256d *a, __m256d *b, __m256d x, __m256d y)
  */
 static void mandelbrot(__m256d x, __m256d y, unsigned buf[4], unsigned max_iter)
 {
-	const __m128i k1 = _mm_set1_epi32(1);
-	const __m256d k4 = _mm256_set_pd(4, 4, 4, 4);
+	const __m128i k1  = _mm_set1_epi32(1);
+	const __m256d k4  = _mm256_set_pd(4, 4, 4, 4);
+	const __m256i map = _mm256_set_epi32(7, 5, 3, 1, 6, 4, 2, 0);
 
 	__m256d a     = _mm256_setzero_pd();
 	__m256d b     = _mm256_setzero_pd();
@@ -53,6 +54,7 @@ static void mandelbrot(__m256d x, __m256d y, unsigned buf[4], unsigned max_iter)
 			/* compare mod^2 < 4, if true increase count by 1 */
 			__m256d test     = _mm256_cmp_pd(mod2, k4, _CMP_LT_OQ);
 			__m256i testi256 = _mm256_castpd_si256(test);
+			testi256 = _mm256_permutevar8x32_epi32(testi256, map);
 			__m128i testi    = _mm256_castsi256_si128(testi256);
 
 			count = _mm_sub_epi32(count, testi);
