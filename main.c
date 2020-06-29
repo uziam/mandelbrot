@@ -150,7 +150,7 @@ int main(int argc, char *argv[])
 	if (!rend)
 		goto out_cleanup_err;
 
-	struct mandelbrot *mb = mandelbrot_new(WINDOW_HEIGHT, WINDOW_WIDTH);
+	struct mandelbrot *mb = mandelbrot_new(WINDOW_WIDTH, WINDOW_HEIGHT);
 	if (!mb)
 		goto out_cleanup_err;
 
@@ -161,7 +161,7 @@ int main(int argc, char *argv[])
 		double ymax = ycenter + 1 * zoom;
 
 		mandelbrot_compute(mb, max_iter, xmin, xmax, ymin, ymax);
-		render(rend, mb);
+		render_show(rend, mb);
 	}
 
 	cleanup_renderer(rend);

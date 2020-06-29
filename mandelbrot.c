@@ -31,20 +31,12 @@ static __m256d mandelbrot_iter(__m256d *a, __m256d *b, __m256d x, __m256d y)
 
 /*
  * Performs mandelbrot computation on a 2x2 block of coordinates and calculates
- * the number of iterations needed to reach conclusion. The order of results
- * written to buf is based on following coordinates:
- *     buf[0]: (x0, y0)
- *     buf[1]: (x0, y1)
- *     buf[2]: (x1, y0)
- *     buf[3]: (x1, y1)
+ * the number of iterations needed to reach conclusion.
  */
-static void mandelbrot(double x0, double x1, double y0, double y1,
-                       unsigned buf[4], unsigned max_iter)
+static void mandelbrot(__m256d x, __m256d y, unsigned buf[4], unsigned max_iter)
 {
 	const __m128i k1 = _mm_set1_epi32(1);
 	const __m256d k4 = _mm256_set_pd(4, 4, 4, 4);
-	const __m256d x  = _mm256_set_pd(x1, x1, x0, x0);
-	const __m256d y  = _mm256_set_pd(y1, y0, y1, y0);
 
 	__m256d a     = _mm256_setzero_pd();
 	__m256d b     = _mm256_setzero_pd();
@@ -74,11 +66,11 @@ static void mandelbrot(double x0, double x1, double y0, double y1,
 	_mm_storeu_si128((__m128i *) buf, count);
 }
 
-struct mandelbrot *mandelbrot_new(unsigned rows, unsigned columns)
+struct mandelbrot *mandelbrot_new(unsigned width, unsigned height)
 {
-	if (!rows || !columns) {
-		fprintf(stderr, "Error: bad dimensions, rows: %u, columns %u\n",
-		        rows, columns);
+	if (!width || !height) {
+		fprintf(stderr, "Error: bad dimensions, width: %u, height %u\n",
+		        width, height);
 		return NULL;
 	}
 
@@ -88,22 +80,14 @@ struct mandelbrot *mandelbrot_new(unsigned rows, unsigned columns)
 		return NULL;
 	}
 
-	if (!(mb->buf = malloc(rows * sizeof(unsigned *)))) {
+	if (!(mb->pixels = malloc(width * height * sizeof(unsigned)))) {
 		perror("Error: failed malloc: ");
 		free(mb);
 		return NULL;
 	}
 
-	for (int i = 0; i < rows; ++i) {
-		if (!(mb->buf[i] = malloc(columns * sizeof(unsigned)))) {
-			perror("Error: failed malloc: ");
-			free(mb);
-			return NULL;
-		}
-	}
-
-	mb->rows     = rows;
-	mb->columns  = columns;
+	mb->width    = width;
+	mb->height   = height;
 	mb->max_iter = 0;
 
 	return mb;
@@ -117,32 +101,26 @@ void mandelbrot_compute(struct mandelbrot *mb, unsigned max_iter, double xmin,
 
 	mb->max_iter = max_iter;
 
-	double dx = (xmax - xmin) / mb->columns;;
-	double dy = (ymax - ymin) / mb->rows;
+	double dx = (xmax - xmin) / mb->width;;
+	double dy = (ymax - ymin) / mb->height;
 
-	/* running computing in 4x4 chunks */
 	#pragma omp parallel for
-	for (int i = 0; i < mb->rows; i += 2) {
-		for (int j = 0; j < mb->columns; j += 2) {
-			double x0 = xmin + j * dx;
-			double x1 = xmin + (j + 1) * dx;
-			double y0 = ymin + i * dy;
-			double y1 = ymin + (i + 1) * dy;
+	for (unsigned i = 0; i < mb->width * mb->height; i += 4) {
+		__m256d x = _mm256_set_pd(xmin + ((i + 3) % mb->width) * dx,
+		                          xmin + ((i + 2) % mb->width) * dx,
+		                          xmin + ((i + 1) % mb->width) * dx,
+		                          xmin + ((i + 0) % mb->width) * dx);
 
-			unsigned buf[4] = { 0 };
+		__m256d y = _mm256_set_pd(ymin + ((i + 3) / mb->width) * dy,
+		                          ymin + ((i + 2) / mb->width) * dy,
+		                          ymin + ((i + 1) / mb->width) * dy,
+		                          ymin + ((i + 0) / mb->width) * dy);
 
-			mandelbrot(x0, x1, y0, y1, buf, max_iter);
+		unsigned buf[4] = { 0 };
 
-			mb->buf[i][j] = buf[0];
+		mandelbrot(x, y, buf, max_iter);
 
-			if (i + 1 < mb->rows) {
-				mb->buf[i + 1][j] = buf[1];
-				if (j + 1 < mb->columns)
-					mb->buf[i + 1][j + 1] = buf[3];
-			}
-
-			if (j + 1 < mb->columns)
-				mb->buf[i][j + 1] = buf[2];
-		}
+		for (int j = 0; j < 4 && (i + j < mb->width * mb->height); j++)
+			mb->pixels[i + j] = buf[j];
 	}
 }
