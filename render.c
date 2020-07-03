@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <SDL_image.h>
 
 #include "render.h"
+#include "setting.h"
 
 typedef struct renderer {
 	SDL_Renderer *rend;
@@ -46,6 +48,40 @@ renderer *render_init(SDL_Renderer *rend, unsigned width, unsigned height)
 out_free_err:
 	free(r);
 	return NULL;
+}
+
+int render_save(renderer *r, const char *filename)
+{
+        SDL_Surface *surf = SDL_CreateRGBSurface(0, WINDOW_WIDTH, WINDOW_HEIGHT,
+                                                 32, 0, 0, 0, 0);
+	if (!surf) {
+		fprintf(stderr, "Error: failed to create surface: %s",
+		        SDL_GetError());
+		goto out_cleanup_err;
+	}
+
+        if (SDL_RenderReadPixels(r->rend, NULL, surf->format->format,
+                                 surf->pixels, surf->pitch)) {
+		fprintf(stderr, "Error: failed to read pixels to surface: %s",
+		        SDL_GetError());
+		goto out_cleanup_err;
+	}
+
+        if (IMG_SavePNG(surf, filename)) {
+		fprintf(stderr, "Error: failed to save image: %s",
+		        SDL_GetError());
+		goto out_cleanup_err;
+        }
+
+        SDL_FreeSurface(surf);
+
+        return 0;
+
+out_cleanup_err:
+        if (surf)
+                SDL_FreeSurface(surf);
+
+        return -1;
 }
 
 void render_show(renderer *r, struct mandelbrot *mb)

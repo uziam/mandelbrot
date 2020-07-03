@@ -25,6 +25,7 @@ CC_FLAGS += -march=native
 CC_FLAGS += $(shell sdl2-config --cflags)
 
 LD_FLAGS ?=
+LD_FLAGS += -lSDL2_image
 LD_FLAGS += $(shell sdl2-config --libs)
 
 OBJ      := $(SRC:.c=.o)

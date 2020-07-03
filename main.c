@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "mandelbrot.h"
 #include "render.h"
@@ -8,6 +9,7 @@
 double zoom  = 1;
 double xcenter = -0.75;
 double ycenter = 0;
+double saveimg = 0;
 
 static SDL_Window *create_window(void)
 {
@@ -104,6 +106,9 @@ static int sdl_event_iteration(void)
 				ycenter -= zoom;
 			if (event.key.keysym.scancode == SDL_SCANCODE_S)
 				ycenter += zoom;
+
+			if (event.key.keysym.scancode == SDL_SCANCODE_P)
+				saveimg = 1;
                         break;
 
 		case SDL_KEYUP:
@@ -116,6 +121,24 @@ static int sdl_event_iteration(void)
 			break;
 		}
 	}
+
+	return 0;
+}
+
+static int save_img(renderer *rend)
+{
+	static int index = 0;
+	char filename[100];
+
+	/* find a name not currently in use */
+	do {
+		snprintf(filename, 100, "capture%d.png", index++);
+	} while (access(filename, F_OK) != -1);
+
+	if (render_save(rend, filename))
+		return -1;
+
+	printf("Image saved to %s\n", filename);
 
 	return 0;
 }
@@ -166,6 +189,12 @@ int main(int argc, char *argv[])
 
 		mandelbrot_compute(mb, max_iter, xmin, xmax, ymin, ymax);
 		render_show(rend, mb);
+
+		if (saveimg) {
+			if (save_img(rend))
+				goto out_cleanup_err;
+			saveimg = 0;
+		}
 	}
 
 	cleanup_renderer(sdlrend);
