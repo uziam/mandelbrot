@@ -15,7 +15,7 @@ static unsigned to_color(unsigned val, unsigned max_iter)
 	unsigned char b = 0;
 	unsigned char a = 255;
 
-	return (b << 24 | g << 16 | r << 8 | a);
+	return (r << 24 | g << 16 | b << 8 | a);
 }
 
 renderer *render_init(SDL_Renderer *rend, unsigned width, unsigned height)
@@ -30,7 +30,7 @@ renderer *render_init(SDL_Renderer *rend, unsigned width, unsigned height)
 	}
 
 	r->tex = SDL_CreateTexture(rend,
-	                           SDL_PIXELFORMAT_BGRA8888,
+	                           SDL_PIXELFORMAT_RGBA8888,
 	                           SDL_TEXTUREACCESS_STREAMING,
 	                           width, height);
 	if (!r->tex) {
